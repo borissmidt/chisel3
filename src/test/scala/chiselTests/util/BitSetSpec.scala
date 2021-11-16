@@ -8,7 +8,7 @@ class BitSetSpec extends AnyFlatSpec with Matchers {
   behavior of classOf[BitSet].toString
 
   it should "reject unequal width when constructing a BitSet" in {
-    intercept[AssertionError] {
+    intercept[IllegalArgumentException] {
       BitSet.fromString(
         """b0010
           |b00010
