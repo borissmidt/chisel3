@@ -4,7 +4,9 @@ package chisel3.util.experimental.decode
 
 import chisel3.util.BitPat
 
-final class TruthTable(val table: Seq[(BitPat, BitPat)], val default: BitPat) {
+final class TruthTable(setTable: Seq[(BitPat, BitPat)], val default: BitPat) {
+
+  val table: Seq[(BitPat, BitPat)] = setTable.sorted
 
   def inputWidth = table.head._1.getWidth
 
@@ -14,7 +16,7 @@ final class TruthTable(val table: Seq[(BitPat, BitPat)], val default: BitPat) {
     def writeRow(map: (BitPat, BitPat)): String =
       s"${map._1.rawString}->${map._2.rawString}"
 
-    (table.map(writeRow) ++ Seq(s"${" "*(inputWidth + 2)}${default.rawString}")).sorted.mkString("\n")
+    (table.map(writeRow) ++ Seq(s"${" "*(inputWidth + 2)}${default.rawString}")).mkString("\n")
   }
 
   def copy(table: Seq[(BitPat, BitPat)] = this.table, default: BitPat = this.default) = new TruthTable(table, default)
@@ -59,7 +61,7 @@ object TruthTable {
           outputSet.headOption.getOrElse('?')
         }.mkString
       }")
-    }.toSeq.sorted, default)
+    }.toSeq, default)
   }
 
 
