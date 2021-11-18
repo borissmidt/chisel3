@@ -170,7 +170,7 @@ sealed class BitPat(val value: BigInt, val mask: BigInt, width: Int) extends Sou
   }.mkString
 
   import scala.math.Ordered.orderingToOrdered
-  def compare(that: BitPat): Int = (width, value, mask) compare (width, value, mask)
+  def compare(that: BitPat): Int = (getWidth, value, mask) compare (that.getWidth, that.value, that.mask)
 
   override def toString = s"BitPat($rawString)"
 }
