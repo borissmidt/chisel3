@@ -16,10 +16,15 @@ lazy val commonSettings = Seq (
   organization := "edu.berkeley.cs",
   version := "3.5-SNAPSHOT",
   autoAPIMappings := true,
-  scalaVersion := "2.12.15",
-  crossScalaVersions := Seq("2.13.6", "2.12.15"),
+  scalaVersion := "3.1.0",
+  crossScalaVersions := Seq("2.13.6", "2.12.15", "3.1.0"),
   scalacOptions := Seq("-deprecation", "-feature"),
-  libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value,
+  libraryDependencies ++= {
+    CrossVersion.partialVersion(scalaVersion.value) match {
+      case Some((2, _)) => "org.scala-lang" % "scala-reflect" % scalaVersion.value :: Nil
+      case _ => Nil
+    }
+  },
   // Macros paradise is integrated into 2.13 but requires a scalacOption
   scalacOptions ++= {
     CrossVersion.partialVersion(scalaVersion.value) match {
@@ -29,6 +34,7 @@ lazy val commonSettings = Seq (
   },
   libraryDependencies ++= {
     CrossVersion.partialVersion(scalaVersion.value) match {
+      case Some((3, _)) => Nil
       case Some((2, n)) if n >= 13 => Nil
       case _ => compilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full) :: Nil
     }
@@ -37,7 +43,7 @@ lazy val commonSettings = Seq (
 
 lazy val publishSettings = Seq (
   publishMavenStyle := true,
-  publishArtifact in Test := false,
+  Test / publishArtifact := false,
   pomIncludeRepository := { x => false },
   pomExtra := <url>http://chisel.eecs.berkeley.edu/</url>
     <licenses>
@@ -139,7 +145,7 @@ lazy val plugin = (project in file("plugin")).
   )
 
 lazy val usePluginSettings = Seq(
-  scalacOptions in Compile ++= {
+  Compile / scalacOptions ++= {
     val jar = (plugin / Compile / Keys.`package`).value
     val addPlugin = "-Xplugin:" + jar.getAbsolutePath
     // add plugin timestamp to compiler options to trigger recompile of
@@ -198,8 +204,8 @@ lazy val chisel = (project in file(".")).
   settings(
     mimaPreviousArtifacts := Set(),
     libraryDependencies += defaultVersions("treadle") % "test",
-    scalacOptions in Test ++= Seq("-language:reflectiveCalls"),
-    scalacOptions in Compile in doc ++= Seq(
+    Test / scalacOptions ++= Seq("-language:reflectiveCalls"),
+    Compile / doc / scalacOptions ++= Seq(
       "-diagrams",
       "-groups",
       "-skip-packages", "chisel3.internal",
@@ -207,7 +213,7 @@ lazy val chisel = (project in file(".")).
       "-doc-version", version.value,
       "-doc-title", name.value,
       "-doc-root-content", baseDirectory.value+"/root-doc.txt",
-      "-sourcepath", (baseDirectory in ThisBuild).value.toString,
+      "-sourcepath", (ThisBuild / baseDirectory ).value.toString,
       "-doc-source-url",
       {
         val branch =
